@@ -13,12 +13,12 @@
 
 ## 🤖 AI Assistant Setup
 
-The AI assistant uses **WebLLM** to run the Llama 3.2 1B model entirely inside your browser using WebGPU. No backend server or local installation is required!
+The AI assistant connects to the **Groq Cloud API** to run the Llama 3 8B model instantly without any downloads or local setup!
 
 **How it works:**
-- When you click "Initialize AI Engine" in the chat interface, the browser will download the model weights (~1GB) directly into its cache.
-- Future visits will load the cached model instantly.
-- **Requirement:** A Chromium-based browser (Chrome, Edge, Brave, etc.) with WebGPU enabled.
+- Open the AI Assistant in the app.
+- You will be prompted to paste a free Groq API key (a link is provided in the app to get one instantly).
+- Once pasted, the AI runs securely and blazingly fast on Groq's cloud infrastructure.
 
 To start the app normally:
 ```bash
@@ -30,7 +30,7 @@ npm run dev
 ## 🚀 Features
 
 ### AI Assistant Module
-- 💬 **In-Browser LLM Integration** — Powered completely offline by WebLLM running `Llama-3.2-1B-Instruct-q4f16_1-MLC` via WebGPU.
+- 💬 **Cloud LLM Integration** — Powered completely securely by Groq running `llama3-8b-8192`. Fast and hardware-agnostic!
 - 🪟 **Floating & Full-page Interface** — Use the assistant docked in the sidebar, popped out as a draggable floating window, or in a dedicated full-page view.
 - 📎 **File Attachments & OCR** — Upload PDFs, text files, or images. Automatically extracts text (via `pdfjs-dist` and `tesseract.js`) to provide as context for your prompts.
 - 🧠 **Simulation Context Awareness** — OSBot automatically reads the live state of your active simulator (e.g., CPU processes, memory blocks, disk requests) to provide accurate answers without you having to copy-paste data.

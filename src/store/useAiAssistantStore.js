@@ -9,14 +9,14 @@ const useAiAssistantStore = create(
       showWelcome: false,
       messages: [],
       isTyping: false,
-      isOllamaRunning: false,
-      selectedModel: 'llama3.2:1b',
+      apiKey: '',
+      apiProvider: 'groq',
       hasOpenedBefore: false,
 
       setOpen: (val) => set({ isOpen: val }),
       setShowWelcome: (val) => set({ showWelcome: val }),
-      setOllamaStatus: (val) => set({ isOllamaRunning: val }),
-      setModel: (model) => set({ selectedModel: model }),
+      setApiKey: (key) => set({ apiKey: key }),
+      setApiProvider: (provider) => set({ apiProvider: provider }),
 
       addMessage: (message) =>
         set((state) => ({ messages: [...state.messages, message] })),
@@ -52,7 +52,7 @@ const useAiAssistantStore = create(
       // --- Floating Window State ---
       isFloating: false,
       floatingPosition: { x: 50, y: 50 },
-      floatingSize: { width: 380, height: 600 },
+      floatingSize: { width: 400, height: 500 },
       isMinimized: false,
       isMaximized: false,
 
@@ -77,6 +77,8 @@ const useAiAssistantStore = create(
       name: 'oslab-ai-assistant',
       partialize: (state) => ({
         hasOpenedBefore: state.hasOpenedBefore,
+        apiKey: state.apiKey,
+        apiProvider: state.apiProvider,
         messages: state.messages,
         isFloating: state.isFloating,
         floatingPosition: state.floatingPosition,

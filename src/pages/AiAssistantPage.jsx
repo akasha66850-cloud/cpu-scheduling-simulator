@@ -28,7 +28,7 @@ export default function AiAssistantPage() {
               </span>
             </h1>
             <p className="text-sm text-text-secondary mt-1">
-              Your personal operating systems tutor running entirely in your browser via WebLLM.
+              Your personal operating systems tutor running safely on the cloud via Groq API.
             </p>
           </div>
         </div>

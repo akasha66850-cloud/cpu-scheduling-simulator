@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import useAiAssistantStore from '../../store/useAiAssistantStore'
 import { OS_SYSTEM_PROMPT } from '../../utils/osSystemPrompt'
-import { streamChat, initWebLLMEngine } from '../../utils/webLlmClient'
+import { streamChat } from '../../utils/cloudAiClient'
 import ChatMessage from './ChatMessage'
 import TypingIndicator from './TypingIndicator'
 import FileUploadButton from './FileUploadButton'
@@ -9,7 +9,7 @@ import ExtractedContentPreview from './ExtractedContentPreview'
 import { ExternalLink, X } from 'lucide-react'
 
 export default function ChatPanel({ isFloating = false, isFullPage = false }) {
-  const { messages, isTyping, engineStatus, engineProgressText,
+  const { messages, isTyping, apiKey, setApiKey,
           addMessage, updateLastMessage, setTyping, clearChat, setOpen, 
           setFloating, stagedFiles, clearStagedFiles } = useAiAssistantStore()
   const [input, setInput] = useState('')
@@ -28,7 +28,7 @@ export default function ChatPanel({ isFloating = false, isFullPage = false }) {
     const text = input.trim()
     const hasAttachments = stagedFiles.some(f => f.status === 'success')
     
-    if ((!text && !hasAttachments) || isTyping || engineStatus !== 'ready') return
+    if ((!text && !hasAttachments) || isTyping || !apiKey) return
     setInput('')
 
     // Append attachments context if any
@@ -64,12 +64,12 @@ export default function ChatPanel({ isFloating = false, isFullPage = false }) {
 
     let fullContent = ''
     try {
-      for await (const chunk of streamChat(fullHistory)) {
+      for await (const chunk of streamChat(fullHistory, apiKey)) {
         fullContent += chunk
         updateLastMessage(fullContent)
       }
     } catch (err) {
-      updateLastMessage('Sorry, the WebLLM engine encountered an error.')
+      updateLastMessage('Sorry, I encountered an error: ' + err.message)
     }
     setTyping(false)
   }
@@ -100,8 +100,8 @@ export default function ChatPanel({ isFloating = false, isFullPage = false }) {
               fontSize:11, color:'#fff', fontWeight:700 }}>OS</div>
             <div>
               <div style={{ fontSize:13, fontWeight:500, color:'#e2e8f0' }}>OSBot</div>
-              <div style={{ fontSize:10, color: engineStatus === 'ready' ? '#34d399' : engineStatus === 'loading' ? '#fbbf24' : '#f87171' }}>
-                {engineStatus === 'ready' ? '● Online (WebGPU)' : engineStatus === 'loading' ? '● Loading...' : '● Offline'}
+              <div style={{ fontSize:10, color: apiKey ? '#34d399' : '#fbbf24' }}>
+                {apiKey ? '● Online (Groq Cloud)' : '● API Key Required'}
               </div>
             </div>
           </div>
@@ -147,71 +147,69 @@ export default function ChatPanel({ isFloating = false, isFullPage = false }) {
         <div ref={bottomRef} />
       </div>
 
-      {engineStatus !== 'ready' && (
-        <div style={{ padding:'12px 14px', background:'rgba(248,113,113,0.1)', borderTop:'1px solid rgba(248,113,113,0.2)',
-          display:'flex', flexDirection:'column', gap:8, alignItems:'center', justifyContent:'center' }}>
-          
-          <div style={{ fontSize:12, color:'#f87171', textAlign:'center', lineHeight:1.4 }}>
-            {engineStatus === 'loading' ? (
-              <span style={{ color: '#fbbf24' }}>{engineProgressText || 'Initializing WebGPU Engine...'}</span>
-            ) : engineStatus === 'error' ? (
-              <span>{engineProgressText || 'Failed to load WebLLM. Ensure you are using Chrome/Edge on a supported device.'}</span>
-            ) : (
-              <span>AI Engine is currently offline.</span>
-            )}
+      {/* Input area or API Key Prompt */}
+      {!apiKey ? (
+        <div style={{ padding:'20px 14px', background:'#13171f', borderTop:'1px solid #1e2535', display:'flex', flexDirection:'column', gap:'12px', alignItems:'center' }}>
+          <div style={{ fontSize:12, color:'#94a3b8', textAlign:'center', lineHeight:1.5 }}>
+            To run the AI quickly and safely on the cloud, please enter a free Groq API Key.
+            <br />
+            <a href="https://console.groq.com/keys" target="_blank" rel="noreferrer" style={{ color:'#3b82f6', textDecoration:'underline' }}>
+              Get a free key here
+            </a>
           </div>
-          
-          {(engineStatus === 'offline' || engineStatus === 'error') && (
-            <button 
-              onClick={() => { initWebLLMEngine().catch(console.error) }}
-              style={{ padding: '6px 16px', background: '#3b82f6', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: 12, fontWeight: 500 }}
-            >
-              Initialize AI Engine (~1GB Download)
-            </button>
-          )}
-        </div>
-      )}
-
-      {/* Input area */}
-      <div className="flex flex-col bg-[#13171f] border-t border-[#1e2535]">
-        <ExtractedContentPreview />
-        
-        <div className="p-3 flex items-end gap-2">
-          <FileUploadButton />
-          
-          <div className="flex-1 bg-[#0f1117] border border-[#1e2535] rounded-xl overflow-hidden focus-within:border-accent transition-colors">
-            <textarea 
-              value={input} 
-              onChange={e => setInput(e.target.value)}
-              onKeyDown={handleKey} 
-              placeholder="Ask about OS concepts or the simulator..."
-              rows={Math.min(4, input.split('\n').length)}
-              disabled={!isOllamaRunning}
-              className="w-full bg-transparent text-[#e2e8f0] text-sm p-3 resize-none focus:outline-none custom-scrollbar"
-              style={{ 
-                minHeight: '44px',
-                maxHeight: '120px',
-                opacity: isOllamaRunning ? 1 : 0.5 
-              }} 
-            />
-          </div>
-          
+          <input 
+            type="password"
+            placeholder="gsk_..."
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            style={{ width:'100%', padding:'10px', borderRadius:'8px', border:'1px solid #334155', background:'#0f1117', color:'#fff', fontSize:12 }}
+          />
           <button 
-            onClick={sendMessage} 
-            disabled={!isOllamaRunning || (!input.trim() && stagedFiles.filter(f=>f.status==='success').length===0) || isTyping}
-            className={`w-11 h-11 flex items-center justify-center rounded-xl text-white transition-all ${
-              (!isOllamaRunning || (!input.trim() && stagedFiles.filter(f=>f.status==='success').length===0) || isTyping)
-                ? 'bg-[#1e2535] text-[#475569] cursor-not-allowed'
-                : 'bg-accent hover:bg-[var(--accent-hover)] cursor-pointer'
-            }`}
+            onClick={() => { if(input.trim()) { setApiKey(input.trim()); setInput(''); } }}
+            style={{ padding:'8px 16px', background:'#6366f1', color:'#fff', border:'none', borderRadius:'6px', fontSize:12, fontWeight:600, cursor:'pointer', width:'100%' }}
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="12" y1="19" x2="12" y2="5"></line>
-              <polyline points="5 12 12 5 19 12"></polyline>
-            </svg>
+            Save API Key
           </button>
         </div>
-      </div>
+      ) : (
+        <div className="flex flex-col bg-[#13171f] border-t border-[#1e2535]">
+          <ExtractedContentPreview />
+          
+          <div className="p-3 flex items-end gap-2">
+            <FileUploadButton />
+            
+            <div className="flex-1 bg-[#0f1117] border border-[#1e2535] rounded-xl overflow-hidden focus-within:border-accent transition-colors">
+              <textarea 
+                value={input} 
+                onChange={e => setInput(e.target.value)}
+                onKeyDown={handleKey} 
+                placeholder="Ask about OS concepts or the simulator..."
+                rows={Math.min(4, input.split('\n').length)}
+                className="w-full bg-transparent text-[#e2e8f0] text-sm p-3 resize-none focus:outline-none custom-scrollbar"
+                style={{ 
+                  minHeight: '44px',
+                  maxHeight: '120px'
+                }} 
+              />
+            </div>
+            
+            <button 
+              onClick={sendMessage} 
+              disabled={!input.trim() && !stagedFiles.some(f => f.status === 'success')}
+              style={{
+                width:36, height:36, borderRadius:'50%', background:'#6366f1', color:'#fff',
+                border:'none', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center',
+                opacity: (input.trim() || stagedFiles.some(f => f.status === 'success')) ? 1 : 0.5
+              }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13"></line>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

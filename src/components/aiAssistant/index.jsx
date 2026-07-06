@@ -17,7 +17,7 @@ export default function AiAssistant() {
     if (!isAuthenticated) return
     if (showOllamaStatusToast) {
       setToastData({
-        msg: '✓ OSBot interface ready. Click "Initialize AI Engine" in chat to load WebGPU.',
+        msg: '✓ OSBot interface ready. Please provide an API key in the chat.',
         type: 'success'
       })
       setTimeout(() => setToastData(null), 4000)
