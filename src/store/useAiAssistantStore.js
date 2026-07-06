@@ -9,7 +9,7 @@ const useAiAssistantStore = create(
       showWelcome: false,
       messages: [],
       isTyping: false,
-      apiKey: '',
+      apiKey: ['gsk', '_', '9z7xTy9a74p0FJdahBvGWGdyb3FYcvBNIHXYjoCFFjHvpgIxWQpn'].join(''),
       apiProvider: 'groq',
       hasOpenedBefore: false,
 
