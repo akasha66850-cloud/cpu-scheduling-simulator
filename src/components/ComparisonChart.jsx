@@ -25,13 +25,13 @@ const ALGO_LABELS = {
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-slate-800 border border-slate-600 rounded-lg p-3 shadow-xl text-sm">
-        <p className="font-bold text-white mb-2">{label}</p>
+      <div className="bg-elevated border border-border-muted rounded-[5px] p-3 shadow-xl text-sm">
+        <p className="font-bold text-text-primary mb-2">{label}</p>
         {payload.map((entry) => (
           <div key={entry.dataKey} className="flex items-center gap-2">
             <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: entry.color }} />
-            <span className="text-slate-300">{entry.name}:</span>
-            <span className="font-mono text-white">{Number(entry.value).toFixed(2)}</span>
+            <span className="text-text-secondary">{entry.name}:</span>
+            <span className="font-mono text-text-primary">{Number(entry.value).toFixed(2)}</span>
           </div>
         ))}
       </div>
@@ -61,7 +61,7 @@ const ComparisonChart = memo(function ComparisonChart({ data, metric }) {
     <div className="w-full">
       <ResponsiveContainer width="100%" height={260}>
         <BarChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 5 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
+          <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
           <XAxis
             dataKey="algorithm"
             tick={{ fill: '#94a3b8', fontSize: 11, fontFamily: 'JetBrains Mono' }}

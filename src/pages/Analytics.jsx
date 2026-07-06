@@ -9,17 +9,18 @@ import useSchedulerStore from '@/store/useSchedulerStore'
 import EmptyState from '@/components/EmptyState'
 import { getPIDColor } from '@/components/GanttChart'
 import { detectStarvation, fmt2 } from '@/utils/metrics'
+import useSettingsStore from '@/store/useSettingsStore'
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-slate-800 border border-slate-600 rounded-lg p-3 shadow-xl text-sm">
-        <p className="font-bold text-white mb-2">{label}</p>
+      <div className="bg-elevated border border-border-muted rounded-[5px] p-3 shadow-xl text-sm">
+        <p className="font-bold text-text-primary mb-2">{label}</p>
         {payload.map((entry) => (
           <div key={entry.dataKey} className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-sm" style={{ backgroundColor: entry.color || entry.fill }} />
-            <span className="text-slate-300">{entry.name}:</span>
-            <span className="font-mono text-white">{Number(entry.value).toFixed(2)}</span>
+            <span className="text-text-secondary">{entry.name}:</span>
+            <span className="font-mono text-text-primary">{Number(entry.value).toFixed(2)}</span>
           </div>
         ))}
       </div>
@@ -33,6 +34,7 @@ export default function Analytics() {
   const processes = useSchedulerStore((s) => s.processes)
   const algorithm = useSchedulerStore((s) => s.algorithm)
   const ganttData = useSchedulerStore((s) => s.ganttData)
+  const showStarvationWarnings = useSettingsStore((s) => s.showStarvationWarnings)
 
   // Process timeline: waiting vs executing per process
   const timelineData = useMemo(() => {
@@ -89,19 +91,19 @@ export default function Analytics() {
     <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-white">Analytics Dashboard</h1>
-        <p className="text-slate-400 text-sm mt-0.5">
+        <h1 className="text-2xl font-bold text-text-primary">Analytics Dashboard</h1>
+        <p className="text-text-muted text-sm mt-0.5">
           Last simulation: <span className="font-mono text-indigo-300">{algorithm}</span> —{' '}
           {processes.length} processes
         </p>
       </div>
 
       {/* Starvation banner */}
-      {starvedProcesses.length > 0 && (
+      {showStarvationWarnings && starvedProcesses.length > 0 && (
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex items-center gap-3 px-4 py-3 bg-amber-500/10 border border-amber-500/30 rounded-xl text-amber-300"
+          className="flex items-center gap-3 px-4 py-3 bg-amber-500/10 border border-orange rounded-[8px] text-amber-300"
         >
           <AlertTriangle className="w-5 h-5 shrink-0" />
           <div>
@@ -119,42 +121,42 @@ export default function Analytics() {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <div className="card p-4">
           <div className="flex items-center gap-2 mb-2">
-            <ArrowLeftRight className="w-4 h-4 text-indigo-400" />
-            <span className="text-xs text-slate-400">Context Switches</span>
+            <ArrowLeftRight className="w-4 h-4 text-accent" />
+            <span className="text-xs text-text-muted">Context Switches</span>
           </div>
-          <p className="text-3xl font-black font-mono text-white">{metrics.contextSwitches}</p>
+          <p className="text-3xl font-black font-mono text-text-primary">{metrics.contextSwitches}</p>
           <div className="mt-2 flex gap-1 flex-wrap">
             {Array.from({ length: Math.min(metrics.contextSwitches, 20) }).map((_, i) => (
-              <div key={i} className="w-2 h-2 bg-indigo-500 rounded-sm opacity-70" />
+              <div key={i} className="w-2 h-2 bg-accent rounded-sm opacity-70" />
             ))}
             {metrics.contextSwitches > 20 && (
-              <span className="text-xs text-slate-500">+{metrics.contextSwitches - 20} more</span>
+              <span className="text-xs text-text-muted">+{metrics.contextSwitches - 20} more</span>
             )}
           </div>
         </div>
         <div className="card p-4">
           <div className="flex items-center gap-2 mb-2">
-            <Clock className="w-4 h-4 text-amber-400" />
-            <span className="text-xs text-slate-400">Total CPU Time</span>
+            <Clock className="w-4 h-4 text-orange" />
+            <span className="text-xs text-text-muted">Total CPU Time</span>
           </div>
-          <p className="text-3xl font-black font-mono text-white">{metrics.totalTime}</p>
-          <p className="text-xs text-slate-500 mt-1">time units</p>
+          <p className="text-3xl font-black font-mono text-text-primary">{metrics.totalTime}</p>
+          <p className="text-xs text-text-muted mt-1">time units</p>
         </div>
         <div className="card p-4">
           <div className="flex items-center gap-2 mb-2">
-            <Activity className="w-4 h-4 text-emerald-400" />
-            <span className="text-xs text-slate-400">Idle Time</span>
+            <Activity className="w-4 h-4 text-green" />
+            <span className="text-xs text-text-muted">Idle Time</span>
           </div>
-          <p className="text-3xl font-black font-mono text-white">{metrics.totalIdleTime}</p>
-          <p className="text-xs text-slate-500 mt-1">time units</p>
+          <p className="text-3xl font-black font-mono text-text-primary">{metrics.totalIdleTime}</p>
+          <p className="text-xs text-text-muted mt-1">time units</p>
         </div>
         <div className="card p-4">
           <div className="flex items-center gap-2 mb-2">
             <BarChart2 className="w-4 h-4 text-sky-400" />
-            <span className="text-xs text-slate-400">CPU Utilization</span>
+            <span className="text-xs text-text-muted">CPU Utilization</span>
           </div>
-          <p className="text-3xl font-black font-mono text-white">{fmt2(metrics.cpuUtilization)}%</p>
-          <div className="mt-2 h-1.5 bg-slate-800 rounded-full">
+          <p className="text-3xl font-black font-mono text-text-primary">{fmt2(metrics.cpuUtilization)}%</p>
+          <div className="mt-2 h-1.5 bg-elevated rounded-full">
             <div
               className="h-full bg-sky-500 rounded-full transition-all duration-700"
               style={{ width: `${Math.min(metrics.cpuUtilization, 100)}%` }}
@@ -166,12 +168,12 @@ export default function Analytics() {
       {/* Process Timeline: Waiting vs Executing */}
       <div className="card p-5">
         <h2 className="section-title mb-4">
-          <Activity className="w-4 h-4 text-indigo-400" />
+          <Activity className="w-4 h-4 text-accent" />
           Process Timeline (Waiting vs Executing)
         </h2>
         <ResponsiveContainer width="100%" height={240}>
           <BarChart data={timelineData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
             <XAxis
               dataKey="pid"
               tick={{ fill: '#94a3b8', fontSize: 11, fontFamily: 'JetBrains Mono' }}
@@ -188,7 +190,7 @@ export default function Analytics() {
             <Legend
               wrapperStyle={{ fontSize: '12px', color: '#94a3b8' }}
             />
-            <Bar dataKey="Waiting" stackId="a" fill="#f59e0b" fillOpacity={0.7} radius={[0, 0, 0, 0]} name="Waiting Time" />
+            <Bar dataKey="Waiting" stackId="a" fill="var(--text-muted)" fillOpacity={0.7} radius={[0, 0, 0, 0]} name="Waiting Time" />
             <Bar dataKey="Executing" stackId="a" radius={[4, 4, 0, 0]} name="Burst Time">
               {timelineData.map((entry, index) => (
                 <Cell key={index} fill={entry.color} fillOpacity={0.85} />
@@ -203,12 +205,12 @@ export default function Analytics() {
         {/* Waiting time distribution */}
         <div className="card p-5">
           <h2 className="section-title mb-4">
-            <Clock className="w-4 h-4 text-amber-400" />
+            <Clock className="w-4 h-4 text-orange" />
             Waiting Time per Process
           </h2>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={wtData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
               <XAxis
                 dataKey="pid"
                 tick={{ fill: '#94a3b8', fontSize: 11, fontFamily: 'JetBrains Mono' }}
@@ -229,12 +231,12 @@ export default function Analytics() {
         {/* Response time distribution */}
         <div className="card p-5">
           <h2 className="section-title mb-4">
-            <Activity className="w-4 h-4 text-emerald-400" />
+            <Activity className="w-4 h-4 text-green" />
             Response Time per Process
           </h2>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={rtData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
               <XAxis
                 dataKey="pid"
                 tick={{ fill: '#94a3b8', fontSize: 11, fontFamily: 'JetBrains Mono' }}
@@ -285,7 +287,7 @@ export default function Analytics() {
                   <td className="font-mono">{r.turnaroundTime}</td>
                   <td className="font-mono">{r.waitingTime}</td>
                   <td className="font-mono">{r.responseTime}</td>
-                  <td className="font-mono text-xs text-slate-400">
+                  <td className="font-mono text-xs text-text-muted">
                     {fmt2(r.waitingTime / Math.max(r.burstTime, 1))}x
                   </td>
                 </tr>

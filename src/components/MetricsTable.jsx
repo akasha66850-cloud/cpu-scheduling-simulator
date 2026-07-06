@@ -1,9 +1,10 @@
 import React, { memo } from 'react'
 import { AlertTriangle } from 'lucide-react'
 import { fmt2 } from '@/utils/metrics'
+import useSettingsStore from '@/store/useSettingsStore'
 
 function bestClass(val, isMin) {
-  return isMin ? 'text-emerald-400 font-semibold' : 'text-slate-300'
+  return isMin ? 'text-green font-semibold' : 'text-text-secondary'
 }
 
 const MetricsTable = memo(function MetricsTable({ processResults }) {
@@ -15,11 +16,12 @@ const MetricsTable = memo(function MetricsTable({ processResults }) {
   const minRT = Math.min(...processResults.map((r) => r.responseTime))
 
   const anyStarved = processResults.some((r) => r.starved)
+  const showStarvationWarnings = useSettingsStore(s => s.showStarvationWarnings)
 
   return (
     <div className="space-y-3">
-      {anyStarved && (
-        <div className="flex items-center gap-2 px-4 py-3 bg-amber-500/10 border border-amber-500/30 rounded-lg text-amber-300 text-sm">
+      {showStarvationWarnings && anyStarved && (
+        <div className="flex items-center gap-2 px-4 py-3 bg-amber-500/10 border border-orange rounded-[5px] text-amber-300 text-sm">
           <AlertTriangle className="w-4 h-4 shrink-0" />
           <span>
             <strong>Starvation detected:</strong>{' '}

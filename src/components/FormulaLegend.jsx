@@ -18,13 +18,13 @@ const FORMULAS = [
     abbr: 'WT',
     name: 'Waiting Time',
     formula: 'TAT − Burst Time',
-    color: 'text-amber-400',
+    color: 'text-orange',
   },
   {
     abbr: 'RT',
     name: 'Response Time',
     formula: 'First CPU Time − Arrival Time',
-    color: 'text-emerald-400',
+    color: 'text-green',
   },
 ]
 
@@ -32,25 +32,25 @@ export default function FormulaLegend() {
   const [open, setOpen] = useState(false)
 
   return (
-    <div className="rounded-xl border border-slate-800 bg-slate-900/60 overflow-hidden">
+    <div className="rounded-[8px] border border-border bg-surface overflow-hidden">
       {/* Toggle header */}
       <button
         onClick={() => setOpen((v) => !v)}
-        className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-slate-800/50 transition-colors"
+        className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-elevated transition-colors"
       >
-        <div className="flex items-center gap-2 text-sm text-slate-400">
-          <BookOpen className="w-3.5 h-3.5 text-indigo-400" />
+        <div className="flex items-center gap-2 text-sm text-text-muted">
+          <BookOpen className="w-3.5 h-3.5 text-accent" />
           <span className="font-medium">Formula Reference</span>
-          <span className="text-xs text-slate-600">CT · TAT · WT · RT</span>
+          <span className="text-xs text-text-muted">CT · TAT · WT · RT</span>
         </div>
         {open
-          ? <ChevronUp className="w-3.5 h-3.5 text-slate-500" />
-          : <ChevronDown className="w-3.5 h-3.5 text-slate-500" />}
+          ? <ChevronUp className="w-3.5 h-3.5 text-text-muted" />
+          : <ChevronDown className="w-3.5 h-3.5 text-text-muted" />}
       </button>
 
       {/* Formula rows */}
       {open && (
-        <div className="border-t border-slate-800 divide-y divide-slate-800/60">
+        <div className="border-t border-border divide-y divide-slate-800/60">
           {FORMULAS.map((f) => (
             <div key={f.abbr} className="flex items-center gap-3 px-4 py-2.5">
               {/* Abbreviation badge */}
@@ -59,30 +59,30 @@ export default function FormulaLegend() {
               </span>
 
               {/* Name */}
-              <span className="text-slate-300 text-sm w-36 shrink-0">{f.name}</span>
+              <span className="text-text-secondary text-sm w-36 shrink-0">{f.name}</span>
 
               {/* Divider */}
               <span className="text-slate-700 text-xs">=</span>
 
               {/* Formula */}
-              <span className="font-mono text-xs text-slate-400 bg-slate-800 px-2.5 py-1 rounded-md">
+              <span className="font-mono text-xs text-text-muted bg-elevated px-2.5 py-1 rounded-md">
                 {f.formula}
               </span>
             </div>
           ))}
 
           {/* Average formulas */}
-          <div className="px-4 py-2.5 flex flex-wrap gap-x-6 gap-y-1 bg-slate-800/30">
-            <span className="font-mono text-xs text-slate-500">
+          <div className="px-4 py-2.5 flex flex-wrap gap-x-6 gap-y-1 bg-elevated">
+            <span className="font-mono text-xs text-text-muted">
               Avg WT = Σ(WT) / n
             </span>
-            <span className="font-mono text-xs text-slate-500">
+            <span className="font-mono text-xs text-text-muted">
               Avg TAT = Σ(TAT) / n
             </span>
-            <span className="font-mono text-xs text-slate-500">
+            <span className="font-mono text-xs text-text-muted">
               CPU Util = (Total − Idle) / Total × 100
             </span>
-            <span className="font-mono text-xs text-slate-500">
+            <span className="font-mono text-xs text-text-muted">
               Throughput = n / Total Time
             </span>
           </div>

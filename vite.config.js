@@ -11,6 +11,18 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+
+  // ── Dev proxy: forward /api/* → C++ Drogon backend on port 8081 ──
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://127.0.0.1:8081',
+        changeOrigin: true,
+        secure: false,
+      },
+    },
+  },
+
   build: {
     rollupOptions: {
       output: {
@@ -28,3 +40,4 @@ export default defineConfig({
     },
   },
 })
+

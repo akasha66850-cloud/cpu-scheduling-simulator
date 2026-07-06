@@ -1,28 +1,20 @@
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
-import { BarChart2, TrendingDown, Cpu, Award } from 'lucide-react'
+import { BarChart2, TrendingDown, Cpu, Award, Loader2, Download } from 'lucide-react'
 import useSchedulerStore from '@/store/useSchedulerStore'
+import { exportCPUComparisonToPDF } from '@/utils/exportHelpers'
 import ComparisonChart from '@/components/ComparisonChart'
 import EmptyState from '@/components/EmptyState'
-import { computeAggregateMetrics } from '@/utils/metrics'
 import { fmt2 } from '@/utils/metrics'
+import { runCPUScheduling } from '@/utils/cpuAlgorithms'
 
-import runFCFS from '@/algorithms/fcfs'
-import runSJF from '@/algorithms/sjf'
-import runSRTF from '@/algorithms/srtf'
-import runPriority from '@/algorithms/priority'
-import runPriorityPreemptive from '@/algorithms/priorityPreemptive'
-import runRoundRobin from '@/algorithms/roundRobin'
 
-// ─── Constants ────────────────────────────────────────────────
-const ALGORITHMS = [
-  { key: 'FCFS', fn: runFCFS, label: 'FCFS' },
-  { key: 'SJF', fn: runSJF, label: 'SJF' },
-  { key: 'SRTF', fn: runSRTF, label: 'SRTF' },
-  { key: 'Priority', fn: runPriority, label: 'Priority' },
-  { key: 'PriorityPreemptive', fn: runPriorityPreemptive, label: 'Pri. Pre.' },
-  { key: 'RoundRobin', fn: (p, o) => runRoundRobin(p, { quantum: o?.quantum || 2 }), label: 'Round Robin' },
-]
+// Algorithm labels (for display only — actual execution is server-side)
+const ALGO_LABELS = {
+  FCFS: 'FCFS', SJF: 'SJF', SRTF: 'SRTF',
+  Priority: 'Priority', PriorityPreemptive: 'Pri. Pre.',
+  RoundRobin: 'Round Robin', MLQ: 'MLQ', MLFQ: 'MLFQ',
+}
 
 const METRICS = [
   { key: 'averageWaitingTime', label: 'Avg Waiting Time', unit: '', lowerIsBetter: true },
@@ -88,23 +80,42 @@ const CHART_METRICS = [
 
 export default function Comparison() {
   const processes = useSchedulerStore((s) => s.processes)
-  const quantum = useSchedulerStore((s) => s.quantum)
+  const quantum   = useSchedulerStore((s) => s.quantum)
+  const agingEnabled = useSchedulerStore((s) => s.agingEnabled)
+  const mlqQ0Quantum = useSchedulerStore((s) => s.mlqQ0Quantum)
+  const mlqQ1Quantum = useSchedulerStore((s) => s.mlqQ1Quantum)
+  const mlfqQ0       = useSchedulerStore((s) => s.mlfqQ0)
+  const mlfqQ1       = useSchedulerStore((s) => s.mlfqQ1)
+  const mlfqBoost    = useSchedulerStore((s) => s.mlfqBoost)
+  
   const [activeMetric, setActiveMetric] = useState('averageWaitingTime')
 
-  // Run all 6 algorithms on the same process set
-  const allResults = useMemo(() => {
-    if (!processes || processes.length === 0) return []
-    return ALGORITHMS.map(({ key, fn, label }) => {
-      try {
-        const { ganttData, processResults } = fn(processes, { quantum })
-        const metrics = computeAggregateMetrics(processResults, ganttData)
-        return { algorithm: key, label, metrics, processResults, ganttData }
-      } catch (e) {
-        console.error(`Error running ${key}:`, e)
-        return null
-      }
-    }).filter(Boolean)
-  }, [processes, quantum])
+  // ── Fetch all 8 algorithms natively ────────────────
+  const [allResults, setAllResults] = useState([])
+  const [loading, setLoading]       = useState(false)
+  const [fetchError, setFetchError] = useState(null)
+
+  useEffect(() => {
+    if (!processes || processes.length === 0) { setAllResults([]); return }
+    setLoading(true)
+    setFetchError(null)
+
+    try {
+      const algos = Object.keys(ALGO_LABELS)
+      const options = { quantum, agingEnabled, mlqQ0Quantum, mlqQ1Quantum, mlfqQ0, mlfqQ1, mlfqBoost }
+      
+      const results = algos.map((algo) => {
+        const { metrics } = runCPUScheduling(algo, processes, options)
+        return { algorithm: algo, label: ALGO_LABELS[algo], metrics }
+      })
+      
+      setAllResults(results)
+    } catch (err) {
+      setFetchError(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }, [processes, quantum, agingEnabled, mlqQ0Quantum, mlqQ1Quantum, mlfqQ0, mlfqQ1, mlfqBoost])
 
   const insight = useMemo(() => generateInsight(allResults), [allResults])
 
@@ -123,12 +134,37 @@ export default function Comparison() {
   return (
     <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-white">Algorithm Comparison</h1>
-        <p className="text-slate-400 text-sm mt-0.5">
-          All 6 algorithms run on the same {processes.length} processes (RR q={quantum})
-        </p>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-text-primary">Algorithm Comparison</h1>
+          <p className="text-text-muted text-sm mt-0.5">
+            All 8 algorithms run on the same {processes.length} processes (RR q={quantum})
+            {' · '}<span className="text-accent font-medium">Native JS</span>
+          </p>
+        </div>
+        {allResults.length > 0 && (
+          <button
+            onClick={() => exportCPUComparisonToPDF(allResults, processes, quantum)}
+            className="btn-secondary px-4 py-2 flex items-center gap-2"
+          >
+            <Download className="w-4 h-4" />
+            Export PDF
+          </button>
+        )}
       </div>
+
+      {/* Loading / error overlay */}
+      {loading && (
+        <div className="flex items-center gap-3 py-10 justify-center">
+          <Loader2 className="w-6 h-6 text-accent animate-spin" />
+          <span className="text-text-muted">Running all 8 algorithms natively…</span>
+        </div>
+      )}
+      {fetchError && (
+        <div className="card p-4 border-red-700 text-red text-sm">
+          Error: {fetchError}
+        </div>
+      )}
 
       {/* Metric selector tabs */}
       <div className="flex flex-wrap gap-2">
@@ -136,10 +172,10 @@ export default function Comparison() {
           <button
             key={m.key}
             onClick={() => setActiveMetric(m.key)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+            className={`px-4 py-2 rounded-[5px] text-sm font-medium transition-all duration-200 ${
               activeMetric === m.key
-                ? 'bg-indigo-600 text-white shadow-glow'
-                : 'bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700'
+                ? 'bg-accent text-text-primary shadow-glow'
+                : 'bg-elevated text-text-muted hover:text-text-primary hover:bg-overlay'
             }`}
           >
             {m.label}
@@ -148,9 +184,9 @@ export default function Comparison() {
       </div>
 
       {/* Bar chart */}
-      <div className="card p-6">
+      <div id="cpu-comparison-charts" className="card p-6">
         <h2 className="section-title mb-4">
-          <BarChart2 className="w-4 h-4 text-indigo-400" />
+          <BarChart2 className="w-4 h-4 text-accent" />
           {CHART_METRICS.find((m) => m.key === activeMetric)?.label}
         </h2>
         <ComparisonChart data={allResults} metric={activeMetric} />
@@ -159,7 +195,7 @@ export default function Comparison() {
       {/* Comparison table */}
       <div className="card p-5">
         <h2 className="section-title mb-4">
-          <TrendingDown className="w-4 h-4 text-indigo-400" />
+          <TrendingDown className="w-4 h-4 text-accent" />
           Full Comparison Table
         </h2>
         <div className="table-container">
@@ -180,7 +216,7 @@ export default function Comparison() {
                     const bestAlgo = getBestAlgo(allResults, m.key, m.lowerIsBetter)
                     const isBest = bestAlgo === r.algorithm
                     return (
-                      <td key={m.key} className={`font-mono ${isBest ? 'text-emerald-400 font-bold' : 'text-slate-300'}`}>
+                      <td key={m.key} className={`font-mono ${isBest ? 'text-green font-bold' : 'text-text-secondary'}`}>
                         {fmt2(r.metrics[m.key])}{m.unit}
                         {isBest && (
                           <span className="ml-2 badge badge-green text-xs">best</span>
@@ -199,13 +235,13 @@ export default function Comparison() {
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="card p-5 border-l-2 border-indigo-500"
+        className="card p-5 border-l-2 border-accent"
       >
         <div className="flex items-center gap-2 mb-3">
-          <Award className="w-5 h-5 text-indigo-400" />
+          <Award className="w-5 h-5 text-accent" />
           <h2 className="section-title">Which Algorithm Wins?</h2>
         </div>
-        <p className="text-slate-300 text-sm leading-relaxed">
+        <p className="text-text-secondary text-sm leading-relaxed">
           <BoldText text={insight} />
         </p>
         <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -215,13 +251,13 @@ export default function Comparison() {
             )
             if (!bestAlgo) return null
             return (
-              <div key={m.key} className="bg-slate-800/60 rounded-lg p-3">
-                <p className="text-xs text-slate-400 mb-1">{m.label}</p>
+              <div key={m.key} className="bg-elevated rounded-[5px] p-3">
+                <p className="text-xs text-text-muted mb-1">{m.label}</p>
                 <div className="flex items-center gap-1.5">
-                  <Cpu className="w-3.5 h-3.5 text-emerald-400" />
-                  <span className="font-mono font-bold text-emerald-400 text-sm">{bestAlgo.label}</span>
+                  <Cpu className="w-3.5 h-3.5 text-green" />
+                  <span className="font-mono font-bold text-green text-sm">{bestAlgo.label}</span>
                 </div>
-                <p className="text-xs text-slate-500 mt-0.5 font-mono">
+                <p className="text-xs text-text-muted mt-0.5 font-mono">
                   {fmt2(bestAlgo.metrics[m.key])}{m.unit}
                 </p>
               </div>

@@ -1,6 +1,8 @@
 import React, { memo, useState, useRef, useEffect } from 'react'
 import { motion } from 'framer-motion'
 
+import useSchedulerStore from '@/store/useSchedulerStore'
+
 // ─── Color Palette ────────────────────────────────────────────
 const COLORS = [
   '#6366f1', '#f59e0b', '#10b981', '#ef4444',
@@ -10,10 +12,13 @@ const COLORS = [
 /**
  * Get consistent color for a process ID.
  * @param {string} pid
+ * @param {Array} processes
  * @returns {string} hex color
  */
-export function getPIDColor(pid) {
+export function getPIDColor(pid, processes = []) {
   if (pid === 'IDLE') return '#475569'
+  const proc = processes.find((p) => p.id === pid)
+  if (proc && proc.color) return proc.color
   const num = parseInt(pid.replace(/\D/g, ''), 10) || 0
   return COLORS[num % COLORS.length]
 }
@@ -22,21 +27,21 @@ export function getPIDColor(pid) {
 function BlockTooltip({ block }) {
   return (
     <div className="tooltip">
-      <div className="font-bold text-white">{block.pid}</div>
-      <div className="text-slate-300">Start: {block.start}</div>
-      <div className="text-slate-300">End: {block.end}</div>
-      <div className="text-slate-300">Duration: {block.end - block.start}</div>
+      <div className="font-bold text-text-primary">{block.pid}</div>
+      <div className="text-text-secondary">Start: {block.start}</div>
+      <div className="text-text-secondary">End: {block.end}</div>
+      <div className="text-text-secondary">Duration: {block.end - block.start}</div>
     </div>
   )
 }
 
 // ─── Single Gantt Block ───────────────────────────────────────
-function GanttBlock({ block, totalTime, index, isActive, isFuture }) {
+function GanttBlock({ block, totalTime, index, isActive, isFuture, processes }) {
   const [hovered, setHovered] = useState(false)
   const duration = block.end - block.start
   const widthPct = (duration / totalTime) * 100
   const leftPct = (block.start / totalTime) * 100
-  const color = getPIDColor(block.pid)
+  const color = getPIDColor(block.pid, processes)
   const isIdle = block.pid === 'IDLE'
   const tooNarrow = widthPct < 3
 
@@ -72,7 +77,7 @@ function GanttBlock({ block, totalTime, index, isActive, isFuture }) {
         {/* Label */}
         {!tooNarrow && (
           <span
-            className="absolute inset-0 flex items-center justify-center text-xs font-bold text-white/90 select-none"
+            className="absolute inset-0 flex items-center justify-center text-xs font-bold text-text-primary select-none"
             style={{ fontSize: widthPct < 6 ? '9px' : '11px' }}
           >
             {block.pid}
@@ -108,8 +113,8 @@ function TimeAxis({ totalTime }) {
             className="absolute flex flex-col items-center"
             style={{ left: `${leftPct}%`, transform: 'translateX(-50%)' }}
           >
-            <div className="w-px h-2 bg-slate-600" />
-            <span className="text-xs text-slate-500 font-mono mt-0.5" style={{ fontSize: '10px' }}>
+            <div className="w-px h-2 bg-overlay" />
+            <span className="text-xs text-text-muted font-mono mt-0.5" style={{ fontSize: '10px' }}>
               {t}
             </span>
           </div>
@@ -120,7 +125,7 @@ function TimeAxis({ totalTime }) {
 }
 
 // ─── Legend ───────────────────────────────────────────────────
-function GanttLegend({ ganttData }) {
+function GanttLegend({ ganttData, processes }) {
   const unique = [...new Set(ganttData.map((b) => b.pid))]
   return (
     <div className="flex flex-wrap gap-3 mt-3">
@@ -129,11 +134,11 @@ function GanttLegend({ ganttData }) {
           <div
             className={`w-3 h-3 rounded-sm ${pid === 'IDLE' ? 'gantt-idle' : ''}`}
             style={{
-              backgroundColor: pid === 'IDLE' ? undefined : getPIDColor(pid),
-              border: `1px solid ${getPIDColor(pid)}80`,
+              backgroundColor: pid === 'IDLE' ? undefined : getPIDColor(pid, processes),
+              border: `1px solid ${getPIDColor(pid, processes)}80`,
             }}
           />
-          <span className="text-xs text-slate-400 font-mono">{pid}</span>
+          <span className="text-xs text-text-muted font-mono">{pid}</span>
         </div>
       ))}
     </div>
@@ -143,6 +148,7 @@ function GanttLegend({ ganttData }) {
 // ─── Main GanttChart Component ────────────────────────────────
 const GanttChart = memo(function GanttChart({ ganttData, stepIndex }) {
   const containerRef = useRef()
+  const processes = useSchedulerStore((s) => s.processes)
 
   if (!ganttData || ganttData.length === 0) return null
 
@@ -155,7 +161,7 @@ const GanttChart = memo(function GanttChart({ ganttData, stepIndex }) {
       <div className="overflow-x-auto pb-2">
         <div ref={containerRef} style={{ minWidth: `${Math.max(totalTime * 20, 400)}px` }}>
           {/* Main timeline */}
-          <div className="relative h-12 bg-slate-800/40 rounded-lg border border-slate-700/50 overflow-visible">
+          <div className="relative h-12 bg-elevated rounded-[5px] border border-border-muted overflow-visible">
             {ganttData.map((block, idx) => (
               <GanttBlock
                 key={`${block.pid}-${block.start}`}
@@ -164,6 +170,7 @@ const GanttChart = memo(function GanttChart({ ganttData, stepIndex }) {
                 index={idx}
                 isActive={stepIndex !== undefined && idx === activeIndex}
                 isFuture={stepIndex !== undefined && idx >= stepIndex}
+                processes={processes}
               />
             ))}
           </div>
@@ -174,7 +181,7 @@ const GanttChart = memo(function GanttChart({ ganttData, stepIndex }) {
       </div>
 
       {/* Legend */}
-      <GanttLegend ganttData={ganttData} />
+      <GanttLegend ganttData={ganttData} processes={processes} />
     </div>
   )
 })

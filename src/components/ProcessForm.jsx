@@ -3,7 +3,7 @@ import { Plus, RefreshCw, Wand2, AlertCircle } from 'lucide-react'
 import useSchedulerStore from '@/store/useSchedulerStore'
 import { motion, AnimatePresence } from 'framer-motion'
 
-const INITIAL_FORM = { arrivalTime: '', burstTime: '', priority: '' }
+const INITIAL_FORM = { arrivalTime: '', burstTime: '', priority: '', color: '#6366f1' }
 
 function getNextPID(processes) {
   if (processes.length === 0) return 'P1'
@@ -74,9 +74,12 @@ export default function ProcessForm() {
       arrivalTime: parseInt(form.arrivalTime, 10),
       burstTime: parseInt(form.burstTime, 10),
       priority: parseInt(form.priority, 10),
+      color: form.color,
     })
 
-    setForm(INITIAL_FORM)
+    const nextColors = ['#6366f1', '#f59e0b', '#10b981', '#ef4444', '#3b82f6', '#8b5cf6', '#f97316', '#06b6d4']
+    const nextColor = nextColors[(processes.length + 1) % nextColors.length]
+    setForm({ ...INITIAL_FORM, color: nextColor })
     setErrors({})
     setTouched({})
   }
@@ -87,9 +90,9 @@ export default function ProcessForm() {
     <div className="space-y-4">
       <form onSubmit={handleSubmit} className="space-y-3" id="process-form">
         {/* PID preview */}
-        <div className="flex items-center gap-2 text-sm text-slate-400">
+        <div className="flex items-center gap-2 text-sm text-text-muted">
           <span>Next PID:</span>
-          <span className="font-mono font-bold text-indigo-400 text-base">
+          <span className="font-mono font-bold text-accent text-base">
             {getNextPID(processes)}
           </span>
           <span className="ml-auto text-xs">
@@ -118,7 +121,7 @@ export default function ProcessForm() {
                 initial={{ opacity: 0, y: -4 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -4 }}
-                className="text-xs text-red-400 mt-1 flex items-center gap-1"
+                className="text-xs text-red mt-1 flex items-center gap-1"
               >
                 <AlertCircle className="w-3 h-3" />
                 {errors.arrivalTime}
@@ -149,7 +152,7 @@ export default function ProcessForm() {
                 initial={{ opacity: 0, y: -4 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -4 }}
-                className="text-xs text-red-400 mt-1 flex items-center gap-1"
+                className="text-xs text-red mt-1 flex items-center gap-1"
               >
                 <AlertCircle className="w-3 h-3" />
                 {errors.burstTime}
@@ -163,7 +166,7 @@ export default function ProcessForm() {
           <label htmlFor="priority" className="label">
             Priority
             {!isPriorityAlgo && (
-              <span className="ml-2 text-xs text-slate-500">(ignored for {algorithm})</span>
+              <span className="ml-2 text-xs text-text-muted">(ignored for {algorithm})</span>
             )}
           </label>
           <input
@@ -184,13 +187,28 @@ export default function ProcessForm() {
                 initial={{ opacity: 0, y: -4 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -4 }}
-                className="text-xs text-red-400 mt-1 flex items-center gap-1"
+                className="text-xs text-red mt-1 flex items-center gap-1"
               >
                 <AlertCircle className="w-3 h-3" />
                 {errors.priority}
               </motion.p>
             )}
           </AnimatePresence>
+        </div>
+
+        {/* Color */}
+        <div>
+          <label htmlFor="process-color" className="label">Process Color</label>
+          <div className="flex items-center gap-3">
+            <input
+              id="process-color"
+              type="color"
+              className="w-10 h-10 p-0 border-0 rounded cursor-pointer bg-transparent"
+              value={form.color}
+              onChange={(e) => handleChange('color', e.target.value)}
+            />
+            <span className="text-xs font-mono text-text-muted uppercase">{form.color}</span>
+          </div>
         </div>
 
         {/* Add button */}

@@ -9,6 +9,11 @@ const SHORTCUTS = [
   { key: 'Ctrl+Z', description: 'Undo last process addition' },
   { key: '→', description: 'Step forward (step mode)' },
   { key: '←', description: 'Step backward (step mode)' },
+  { key: 'M', description: 'Run memory simulation' },
+  { key: 'N', description: 'Next step (memory)' },
+  { key: 'P', description: 'Run PR simulation' },
+  { key: 'D', description: 'Run Deadlock simulation' },
+  { key: 'K', description: 'Run Disk simulation' },
   { key: '?', description: 'Show this cheatsheet' },
   { key: 'Esc', description: 'Close dialogs' },
 ]
@@ -35,12 +40,12 @@ export default function KeyboardShortcuts({ isOpen, onClose }) {
             >
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <Keyboard className="w-5 h-5 text-indigo-400" />
-                  <h2 className="font-semibold text-white">Keyboard Shortcuts</h2>
+                  <Keyboard className="w-5 h-5 text-accent" />
+                  <h2 className="font-semibold text-text-primary">Keyboard Shortcuts</h2>
                 </div>
                 <button
                   onClick={onClose}
-                  className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+                  className="p-1.5 text-text-muted hover:text-text-primary hover:bg-elevated rounded-[5px] transition-colors"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -49,8 +54,8 @@ export default function KeyboardShortcuts({ isOpen, onClose }) {
               <div className="space-y-2">
                 {SHORTCUTS.map((s) => (
                   <div key={s.key} className="flex items-center justify-between gap-4">
-                    <span className="text-sm text-slate-300">{s.description}</span>
-                    <kbd className="shrink-0 px-2.5 py-1 text-xs font-mono bg-slate-800 border border-slate-600 rounded text-slate-200 shadow-sm">
+                    <span className="text-sm text-text-secondary">{s.description}</span>
+                    <kbd className="shrink-0 px-2.5 py-1 text-xs font-mono bg-elevated border border-border-muted rounded text-text-primary shadow-sm">
                       {s.key}
                     </kbd>
                   </div>

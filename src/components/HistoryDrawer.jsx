@@ -52,16 +52,16 @@ export default function HistoryDrawer({ isOpen, onClose }) {
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed right-0 top-0 h-full w-80 bg-slate-900 border-l border-slate-800 z-50 flex flex-col"
+            className="fixed right-0 top-0 h-full w-80 bg-surface border-l border-border z-50 flex flex-col"
           >
-            <div className="flex items-center justify-between p-4 border-b border-slate-800">
+            <div className="flex items-center justify-between p-4 border-b border-border">
               <div className="flex items-center gap-2">
-                <History className="w-5 h-5 text-indigo-400" />
-                <h2 className="font-semibold text-white">Simulation History</h2>
+                <History className="w-5 h-5 text-accent" />
+                <h2 className="font-semibold text-text-primary">Simulation History</h2>
               </div>
               <button
                 onClick={onClose}
-                className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+                className="p-1.5 text-text-muted hover:text-text-primary hover:bg-elevated rounded-[5px] transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -69,7 +69,7 @@ export default function HistoryDrawer({ isOpen, onClose }) {
 
             <div className="flex-1 overflow-y-auto p-4 space-y-3">
               {history.length === 0 ? (
-                <div className="text-center py-12 text-slate-500">
+                <div className="text-center py-12 text-text-muted">
                   <History className="w-8 h-8 mx-auto mb-2 opacity-30" />
                   <p className="text-sm">No saved simulations yet.</p>
                   <p className="text-xs mt-1">Run a simulation and save it.</p>
@@ -78,7 +78,7 @@ export default function HistoryDrawer({ isOpen, onClose }) {
                 history.map((entry) => (
                   <div
                     key={entry.id}
-                    className="card p-3 hover:border-slate-600 transition-colors"
+                    className="card p-3 hover:border-border-muted transition-colors"
                   >
                     <div className="flex items-start justify-between gap-2 mb-2">
                       <div>
@@ -86,19 +86,19 @@ export default function HistoryDrawer({ isOpen, onClose }) {
                           {ALGO_LABELS[entry.algorithm] || entry.algorithm}
                         </span>
                         {entry.algorithm === 'RoundRobin' && (
-                          <span className="ml-1 text-xs text-slate-500">q={entry.quantum}</span>
+                          <span className="ml-1 text-xs text-text-muted">q={entry.quantum}</span>
                         )}
                       </div>
                       <button
                         onClick={() => deleteHistoryEntry(entry.id)}
-                        className="p-1 text-slate-500 hover:text-red-400 transition-colors"
+                        className="p-1 text-text-muted hover:text-red transition-colors"
                         title="Delete"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
 
-                    <div className="flex items-center gap-3 text-xs text-slate-400 mb-3">
+                    <div className="flex items-center gap-3 text-xs text-text-muted mb-3">
                       <span className="flex items-center gap-1">
                         <Cpu className="w-3 h-3" />
                         {entry.processes.length} processes

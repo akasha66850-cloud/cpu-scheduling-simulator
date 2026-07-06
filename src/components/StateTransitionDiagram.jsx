@@ -23,11 +23,11 @@ function getProcessState(pid, currentBlock, processResults, currentTime) {
 }
 
 const stateColors = {
-  New: 'border-slate-600 text-slate-500',
-  Ready: 'border-amber-500 text-amber-400 bg-amber-500/10',
-  Running: 'border-emerald-500 text-emerald-400 bg-emerald-500/10 shadow-glow',
-  Waiting: 'border-red-500 text-red-400 bg-red-500/10',
-  Terminated: 'border-slate-600 text-slate-500 bg-slate-800/50',
+  New: 'border-border-muted text-text-muted',
+  Ready: 'border-orange text-orange bg-amber-500/10',
+  Running: 'border-green text-green bg-emerald-500/10 shadow-glow',
+  Waiting: 'border-red text-red bg-red-500/10',
+  Terminated: 'border-border-muted text-text-muted bg-elevated',
 }
 
 export default function StateTransitionDiagram({ pid, ganttData, processResults, stepIndex }) {
@@ -47,7 +47,7 @@ export default function StateTransitionDiagram({ pid, ganttData, processResults,
             }}
             transition={{ duration: 0.2 }}
             className={`flex items-center justify-center px-3 py-1 rounded-full border text-xs font-semibold transition-all duration-300 ${
-              currentState === state ? stateColors[state] : 'border-slate-700 text-slate-600'
+              currentState === state ? stateColors[state] : 'border-border-muted text-text-muted'
             }`}
           >
             {state}
