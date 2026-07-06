@@ -1,4 +1,4 @@
-import { CreateMLCEngine } from "@mlc-ai/web-llm"
+import { CreateWebWorkerEngine } from "@mlc-ai/web-llm"
 import useAiAssistantStore from '../store/useAiAssistantStore'
 import useSchedulerStore from '../store/useSchedulerStore'
 import useMemoryStore from '../store/useMemoryStore'
@@ -15,12 +15,21 @@ export async function initWebLLMEngine() {
 
   store.setEngineStatus('loading')
   
+  // Throttle state updates so we don't crash React with thousands of re-renders
+  let lastUpdate = 0
   const initProgressCallback = (initProgress) => {
-    store.setEngineProgressText(initProgress.text)
+    const now = Date.now()
+    if (now - lastUpdate > 100 || initProgress.progress === 1) {
+      store.setEngineProgressText(initProgress.text)
+      lastUpdate = now
+    }
   }
 
   try {
-    globalEngine = await CreateMLCEngine(
+    const worker = new Worker(new URL('./webLlmWorker.js', import.meta.url), { type: 'module' })
+    
+    globalEngine = await CreateWebWorkerEngine(
+      worker,
       MODEL_ID,
       { initProgressCallback }
     )
