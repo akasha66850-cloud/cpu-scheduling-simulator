@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import useAiAssistantStore from '../../store/useAiAssistantStore'
 import { OS_SYSTEM_PROMPT } from '../../utils/osSystemPrompt'
-import { streamChat } from '../../utils/ollamaClient'
+import { streamChat, initWebLLMEngine } from '../../utils/webLlmClient'
 import ChatMessage from './ChatMessage'
 import TypingIndicator from './TypingIndicator'
 import FileUploadButton from './FileUploadButton'
@@ -9,7 +9,7 @@ import ExtractedContentPreview from './ExtractedContentPreview'
 import { ExternalLink, X } from 'lucide-react'
 
 export default function ChatPanel({ isFloating = false, isFullPage = false }) {
-  const { messages, isTyping, isOllamaRunning, selectedModel,
+  const { messages, isTyping, engineStatus, engineProgressText,
           addMessage, updateLastMessage, setTyping, clearChat, setOpen, 
           setFloating, stagedFiles, clearStagedFiles } = useAiAssistantStore()
   const [input, setInput] = useState('')
@@ -28,7 +28,7 @@ export default function ChatPanel({ isFloating = false, isFullPage = false }) {
     const text = input.trim()
     const hasAttachments = stagedFiles.some(f => f.status === 'success')
     
-    if ((!text && !hasAttachments) || isTyping || !isOllamaRunning) return
+    if ((!text && !hasAttachments) || isTyping || engineStatus !== 'ready') return
     setInput('')
 
     // Append attachments context if any
@@ -64,12 +64,12 @@ export default function ChatPanel({ isFloating = false, isFullPage = false }) {
 
     let fullContent = ''
     try {
-      for await (const chunk of streamChat(fullHistory, selectedModel)) {
+      for await (const chunk of streamChat(fullHistory)) {
         fullContent += chunk
         updateLastMessage(fullContent)
       }
     } catch (err) {
-      updateLastMessage('Sorry, I could not connect to Ollama. Make sure it is running with: ollama serve')
+      updateLastMessage('Sorry, the WebLLM engine encountered an error.')
     }
     setTyping(false)
   }
@@ -100,8 +100,8 @@ export default function ChatPanel({ isFloating = false, isFullPage = false }) {
               fontSize:11, color:'#fff', fontWeight:700 }}>OS</div>
             <div>
               <div style={{ fontSize:13, fontWeight:500, color:'#e2e8f0' }}>OSBot</div>
-              <div style={{ fontSize:10, color: isOllamaRunning ? '#34d399' : '#f87171' }}>
-                {isOllamaRunning ? '● Online — ' + selectedModel : '● Ollama not running'}
+              <div style={{ fontSize:10, color: engineStatus === 'ready' ? '#34d399' : engineStatus === 'loading' ? '#fbbf24' : '#f87171' }}>
+                {engineStatus === 'ready' ? '● Online (WebGPU)' : engineStatus === 'loading' ? '● Loading...' : '● Offline'}
               </div>
             </div>
           </div>
@@ -147,10 +147,28 @@ export default function ChatPanel({ isFloating = false, isFullPage = false }) {
         <div ref={bottomRef} />
       </div>
 
-      {!isOllamaRunning && (
-        <div style={{ padding:'8px 14px', background:'#2a1f1f',
-          borderTop:'1px solid #3d1f1f', fontSize:10, color:'#f87171' }}>
-          Ollama not detected. Run: <code style={{ color:'#fbbf24' }}>ollama serve</code> in terminal
+      {engineStatus !== 'ready' && (
+        <div style={{ padding:'12px 14px', background:'rgba(248,113,113,0.1)', borderTop:'1px solid rgba(248,113,113,0.2)',
+          display:'flex', flexDirection:'column', gap:8, alignItems:'center', justifyContent:'center' }}>
+          
+          <div style={{ fontSize:12, color:'#f87171', textAlign:'center', lineHeight:1.4 }}>
+            {engineStatus === 'loading' ? (
+              <span style={{ color: '#fbbf24' }}>{engineProgressText || 'Initializing WebGPU Engine...'}</span>
+            ) : engineStatus === 'error' ? (
+              <span>{engineProgressText || 'Failed to load WebLLM. Ensure you are using Chrome/Edge on a supported device.'}</span>
+            ) : (
+              <span>AI Engine is currently offline.</span>
+            )}
+          </div>
+          
+          {(engineStatus === 'offline' || engineStatus === 'error') && (
+            <button 
+              onClick={() => { initWebLLMEngine().catch(console.error) }}
+              style={{ padding: '6px 16px', background: '#3b82f6', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: 12, fontWeight: 500 }}
+            >
+              Initialize AI Engine (~1GB Download)
+            </button>
+          )}
         </div>
       )}
 

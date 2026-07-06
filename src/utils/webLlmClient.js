@@ -1,24 +1,36 @@
-const OLLAMA_BASE = 'http://localhost:11434'
+import { CreateMLCEngine } from "@mlc-ai/web-llm"
+import useAiAssistantStore from '../store/useAiAssistantStore'
 import useSchedulerStore from '../store/useSchedulerStore'
 import useMemoryStore from '../store/useMemoryStore'
 import useDiskStore from '../store/useDiskStore'
 
-export async function checkOllamaRunning() {
-  try {
-    const res = await fetch(`${OLLAMA_BASE}/api/tags`, { signal: AbortSignal.timeout(2000) })
-    return res.ok
-  } catch {
-    return false
-  }
-}
+// Use the lightweight 1B model that runs fast on most GPUs
+const MODEL_ID = "Llama-3.2-1B-Instruct-q4f16_1-MLC"
+let globalEngine = null
 
-export async function getAvailableModels() {
+export async function initWebLLMEngine() {
+  const store = useAiAssistantStore.getState()
+  
+  if (globalEngine) return globalEngine
+
+  store.setEngineStatus('loading')
+  
+  const initProgressCallback = (initProgress) => {
+    store.setEngineProgressText(initProgress.text)
+  }
+
   try {
-    const res = await fetch(`${OLLAMA_BASE}/api/tags`)
-    const data = await res.json()
-    return data.models?.map(m => m.name) || []
-  } catch {
-    return []
+    globalEngine = await CreateMLCEngine(
+      MODEL_ID,
+      { initProgressCallback }
+    )
+    store.setEngineStatus('ready')
+    return globalEngine
+  } catch (err) {
+    console.error("Failed to initialize WebLLM:", err)
+    store.setEngineStatus('error')
+    store.setEngineProgressText(err.message || 'Initialization failed. (Requires WebGPU in Chrome/Edge)')
+    throw err
   }
 }
 
@@ -53,36 +65,26 @@ function getSimulationContext() {
   return hasContext ? ctx : ""
 }
 
-export async function* streamChat(messages, model = 'llama3.2') {
-  // Inject context into the system message (which is usually the first one)
+export async function* streamChat(messages) {
+  if (!globalEngine) {
+    throw new Error("Engine not initialized")
+  }
+
+  // Inject context into the system message
   const modifiedMessages = [...messages]
   if (modifiedMessages.length > 0 && modifiedMessages[0].role === 'system') {
     modifiedMessages[0].content += getSimulationContext()
   }
 
-  const res = await fetch(`${OLLAMA_BASE}/api/chat`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model,
-      messages: modifiedMessages,
-      stream: true
-    })
+  const chunks = await globalEngine.chat.completions.create({
+    messages: modifiedMessages,
+    stream: true,
   })
 
-  const reader = res.body.getReader()
-  const decoder = new TextDecoder()
-
-  while (true) {
-    const { done, value } = await reader.read()
-    if (done) break
-    const lines = decoder.decode(value).split('\n').filter(Boolean)
-    for (const line of lines) {
-      try {
-        const json = JSON.parse(line)
-        if (json.message?.content) yield json.message.content
-        if (json.done) return
-      } catch {}
+  for await (const chunk of chunks) {
+    const content = chunk.choices[0]?.delta?.content || ""
+    if (content) {
+      yield content
     }
   }
 }

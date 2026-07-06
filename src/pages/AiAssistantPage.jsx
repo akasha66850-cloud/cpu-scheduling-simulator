@@ -28,7 +28,7 @@ export default function AiAssistantPage() {
               </span>
             </h1>
             <p className="text-sm text-text-secondary mt-1">
-              Your personal operating systems tutor powered by llama3.2:1b.
+              Your personal operating systems tutor running entirely in your browser via WebLLM.
             </p>
           </div>
         </div>

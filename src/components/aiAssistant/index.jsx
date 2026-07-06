@@ -3,30 +3,26 @@ import { motion, AnimatePresence } from 'framer-motion'
 import useAiAssistantStore from '../../store/useAiAssistantStore'
 import useAuthStore from '../../store/useAuthStore'
 import useSettingsStore from '../../store/useSettingsStore'
-import { checkOllamaRunning } from '../../utils/ollamaClient'
 import ChatBubble from './ChatBubble'
 import ChatPanel from './ChatPanel'
 import FloatingChatWindow from './FloatingChatWindow'
 
 export default function AiAssistant() {
-  const { isOpen, showWelcome, openWithWelcome, setOllamaStatus, setShowWelcome, selectedModel } = useAiAssistantStore()
+  const { isOpen, showWelcome, openWithWelcome, setShowWelcome } = useAiAssistantStore()
   const isAuthenticated = useAuthStore(s => s.isAuthenticated)
   const showOllamaStatusToast = useSettingsStore(s => s.showOllamaStatusToast)
   const [toastData, setToastData] = useState(null)
 
   useEffect(() => {
     if (!isAuthenticated) return
-    checkOllamaRunning().then(running => {
-      setOllamaStatus(running)
-      if (showOllamaStatusToast) {
-        setToastData({
-          msg: running ? `✓ OSBot connected — ${selectedModel} ready` : '✗ OSBot offline — run: ollama serve',
-          type: running ? 'success' : 'error'
-        })
-        setTimeout(() => setToastData(null), 3000)
-      }
-    })
-  }, [isAuthenticated, showOllamaStatusToast, selectedModel])
+    if (showOllamaStatusToast) {
+      setToastData({
+        msg: '✓ OSBot interface ready. Click "Initialize AI Engine" in chat to load WebGPU.',
+        type: 'success'
+      })
+      setTimeout(() => setToastData(null), 4000)
+    }
+  }, [isAuthenticated, showOllamaStatusToast])
 
   useEffect(() => {
     if (showWelcome && isAuthenticated) {
