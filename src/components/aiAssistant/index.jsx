@@ -70,7 +70,7 @@ export default function AiAssistant() {
               zIndex: 9999,
               width: '100%',
               maxWidth: '400px',
-              height: '100vh',
+              height: '100dvh',
               boxShadow: '-10px 0 30px rgba(0,0,0,0.5)'
             }}
           >
