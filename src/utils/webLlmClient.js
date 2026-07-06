@@ -1,4 +1,4 @@
-import { CreateWebWorkerEngine } from "@mlc-ai/web-llm"
+import { CreateWebWorkerMLCEngine } from "@mlc-ai/web-llm"
 import useAiAssistantStore from '../store/useAiAssistantStore'
 import useSchedulerStore from '../store/useSchedulerStore'
 import useMemoryStore from '../store/useMemoryStore'
@@ -28,7 +28,7 @@ export async function initWebLLMEngine() {
   try {
     const worker = new Worker(new URL('./webLlmWorker.js', import.meta.url), { type: 'module' })
     
-    globalEngine = await CreateWebWorkerEngine(
+    globalEngine = await CreateWebWorkerMLCEngine(
       worker,
       MODEL_ID,
       { initProgressCallback }
