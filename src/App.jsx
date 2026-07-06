@@ -85,7 +85,7 @@ function ThemeApplier() {
 
 export default function App() {
   return (
-    <BrowserRouter basename="/cpu-scheduling-simulator">
+    <BrowserRouter basename={import.meta.env.BASE_URL}>
       <ThemeApplier />
       <Routes>
         <Route path="/login" element={<Login />} />
