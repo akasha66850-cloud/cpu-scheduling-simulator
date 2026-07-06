@@ -2,7 +2,7 @@ import useSchedulerStore from '../store/useSchedulerStore'
 import useMemoryStore from '../store/useMemoryStore'
 import useDiskStore from '../store/useDiskStore'
 
-export async function* streamChat(messages, apiKey, model = 'llama3-8b-8192') {
+export async function* streamChat(messages, apiKey, model = 'llama-3.1-8b-instant') {
   if (!apiKey) throw new Error("API Key is missing")
 
   // Inject simulation context into the first message
