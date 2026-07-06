@@ -68,7 +68,8 @@ export default function AiAssistant() {
               bottom: 0,
               right: 0,
               zIndex: 9999,
-              width: '380px',
+              width: '100%',
+              maxWidth: '400px',
               height: '100vh',
               boxShadow: '-10px 0 30px rgba(0,0,0,0.5)'
             }}
