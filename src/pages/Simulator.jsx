@@ -174,27 +174,11 @@ export default function Simulator() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6">
-      {/* Page header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-text-primary">CPU Scheduler Simulator</h1>
-          <p className="text-text-muted text-sm mt-0.5">Configure processes and run scheduling algorithms</p>
-        </div>
-        <div className="flex gap-2">
-          <button onClick={() => setHistoryOpen(true)} className="btn-secondary flex items-center gap-2 text-sm">
-            <History className="w-4 h-4" /> History
-          </button>
-          <button onClick={() => setShortcutsOpen(true)} className="btn-secondary text-sm px-3 py-2 font-mono" title="Keyboard shortcuts">
-            ?
-          </button>
-        </div>
-      </div>
+      <div className="grid grid-cols-1 md:grid-cols-[1fr_300px] gap-[20px] simulator-layout">
 
-      <div className="flex flex-col lg:flex-row gap-6 simulator-layout">
-
-        {/* ── LEFT PANEL ─────────────────────────────────────── */}
-        <div className="lg:w-[420px] shrink-0 space-y-4">
-
+        {/* ── LEFT COLUMN (Primary) ──────────────────────────── */}
+        <div className="flex flex-col gap-[20px] min-w-0">
+          
           {/* Algorithm selector card */}
           <div className="card p-4 space-y-3">
             <h2 className="section-title">
@@ -296,6 +280,99 @@ export default function Simulator() {
             </div>
           </div>
 
+          {results ? (
+            <>
+              {/* Step mode controls */}
+              {isStepMode && <StepModeControls />}
+
+              {/* Gantt Chart */}
+              <div className="card p-5 space-y-3">
+                <h2 className="section-title">
+                  <BarChart2 className="w-4 h-4 text-accent" />
+                  Gantt Chart
+                  <span className="ml-2 badge badge-indigo text-xs">
+                    {algorithm}
+                    {isRR  ? ` q=${quantum}` : ''}
+                    {isMLQ ? ` Q0q=${mlqQ0Quantum} Q1q=${mlqQ1Quantum}` : ''}
+                    {isMLFQ ? ` Q0q=${mlfqQ0} Q1q=${mlfqQ1}` : ''}
+                  </span>
+                </h2>
+                <GanttChart
+                  ganttData={results.ganttData}
+                  stepIndex={isStepMode ? stepIndex : undefined}
+                />
+              </div>
+
+              {/* Ready Queue Panel */}
+              <ReadyQueuePanel
+                ganttData={results.ganttData}
+                processResults={results.processResults}
+                processes={processes}
+                algorithm={algorithm}
+                stepIndex={vizStepIndex}
+              />
+
+              {/* Full Final Gantt Chart (Preview) */}
+              {isStepMode && (
+                <div className="card p-5 space-y-3 mt-6 border-t border-border">
+                  <h2 className="section-title">
+                    <BarChart2 className="w-4 h-4 text-green" />
+                    Full Final Gantt Chart (Preview)
+                  </h2>
+                  <GanttChart
+                    ganttData={results.ganttData}
+                    stepIndex={undefined}
+                  />
+                </div>
+              )}
+
+              {/* Process State Panel */}
+              <ProcessStatePanel
+                ganttData={results.ganttData}
+                processResults={results.processResults}
+                processes={processes}
+                algorithm={algorithm}
+                stepIndex={vizStepIndex}
+              />
+
+              {/* Metric summary cards */}
+              <MetricCards metrics={results.metrics} />
+
+              {/* Detailed results table */}
+              <div className="card p-5 space-y-3">
+                <h2 className="section-title">Detailed Results</h2>
+                <MetricsTable processResults={results.processResults} />
+
+                {isMLFQ && results.processResults.some((r) => r.demotions > 0) && (
+                  <p className="text-xs text-text-muted pt-1">
+                    <span className="badge badge-yellow mr-1">↓N</span>
+                    indicates the number of times a process was demoted to a lower queue.
+                  </p>
+                )}
+              </div>
+            </>
+          ) : (
+            <EmptyState
+              title="No simulation results yet"
+              description="Add processes on the right and click 'Run Simulation' to see the Gantt chart and metrics."
+              icon={BarChart2}
+            />
+          )}
+        </div>
+
+        {/* ── RIGHT COLUMN (Secondary/Context) ───────────────── */}
+        <div className="flex flex-col gap-[20px]">
+          
+          {/* Action Buttons */}
+          <div className="flex gap-2 justify-end">
+            <button onClick={() => setHistoryOpen(true)} className="btn-secondary flex items-center gap-2 text-sm flex-1 justify-center">
+              <History className="w-4 h-4" /> History
+            </button>
+            <button onClick={() => setShortcutsOpen(true)} className="btn-secondary text-sm px-3 py-2 font-mono shrink-0" title="Keyboard shortcuts">
+              ?
+            </button>
+          </div>
+
           {/* Algorithm info */}
           <AlgorithmInfoPanel algorithm={algorithm} />
 
@@ -344,105 +421,29 @@ export default function Simulator() {
               }
             </button>
           </div>
-        </div>
 
-        {/* ── RIGHT PANEL ─────────────────────────────────────── */}
-        <div className="flex-1 min-w-0 space-y-5">
-          {results ? (
+          {results && (
             <>
-              {/* Step mode controls */}
-              {isStepMode && <StepModeControls />}
-
-              {/* Gantt Chart */}
-              <div className="card p-5 space-y-3">
-                <h2 className="section-title">
-                  <BarChart2 className="w-4 h-4 text-accent" />
-                  Gantt Chart
-                  <span className="ml-2 badge badge-indigo text-xs">
-                    {algorithm}
-                    {isRR  ? ` q=${quantum}` : ''}
-                    {isMLQ ? ` Q0q=${mlqQ0Quantum} Q1q=${mlqQ1Quantum}` : ''}
-                    {isMLFQ ? ` Q0q=${mlfqQ0} Q1q=${mlfqQ1}` : ''}
-                  </span>
-                </h2>
-                <GanttChart
-                  ganttData={results.ganttData}
-                  stepIndex={isStepMode ? stepIndex : undefined}
-                />
-              </div>
-
-              {/* ✦ Ready Queue Panel (always visible after simulation) */}
-              <ReadyQueuePanel
-                ganttData={results.ganttData}
-                processResults={results.processResults}
-                processes={processes}
-                algorithm={algorithm}
-                stepIndex={vizStepIndex}
-              />
-
-              {/* Full Final Gantt Chart (visible only in Step Mode) */}
-              {isStepMode && (
-                <div className="card p-5 space-y-3 mt-6 border-t border-border">
-                  <h2 className="section-title">
-                    <BarChart2 className="w-4 h-4 text-green" />
-                    Full Final Gantt Chart (Preview)
-                  </h2>
-                  <GanttChart
-                    ganttData={results.ganttData}
-                    stepIndex={undefined}
-                  />
-                </div>
-              )}
-
-              {/* ✦ Process State Panel (always visible after simulation) */}
-              <ProcessStatePanel
-                ganttData={results.ganttData}
-                processResults={results.processResults}
-                processes={processes}
-                algorithm={algorithm}
-                stepIndex={vizStepIndex}
-              />
-
-              {/* Metric summary cards */}
-              <MetricCards metrics={results.metrics} />
-
               {/* Formula reference */}
               <FormulaLegend />
 
-              {/* Detailed results table */}
-              <div className="card p-5 space-y-3">
-                <h2 className="section-title">Detailed Results</h2>
-                <MetricsTable processResults={results.processResults} />
-
-                {/* MLFQ demotion column callout */}
-                {isMLFQ && results.processResults.some((r) => r.demotions > 0) && (
-                  <p className="text-xs text-text-muted pt-1">
-                    <span className="badge badge-yellow mr-1">↓N</span>
-                    indicates the number of times a process was demoted to a lower queue.
-                  </p>
-                )}
-              </div>
-
               {/* Export & save */}
-              <div className="flex flex-wrap gap-3">
-                <button onClick={handleSave} className="btn-secondary flex items-center gap-2 text-sm">
+              <div className="flex flex-col gap-3 mt-4">
+                <button onClick={handleSave} className="btn-secondary flex items-center gap-2 text-sm justify-center">
                   <Save className="w-4 h-4" /> Save Simulation
                 </button>
-                <button onClick={handleExportPDF} disabled={exportLoading} className="btn-secondary flex items-center gap-2 text-sm">
-                  <FileText className="w-4 h-4" /> {exportLoading ? 'Generating…' : 'Export PDF'}
-                </button>
-                <button onClick={handleExportCSV} className="btn-secondary flex items-center gap-2 text-sm">
-                  <Download className="w-4 h-4" /> Export CSV
-                </button>
+                <div className="flex gap-3">
+                  <button onClick={handleExportPDF} disabled={exportLoading} className="btn-secondary flex items-center gap-2 text-sm flex-1 justify-center">
+                    <FileText className="w-4 h-4" /> {exportLoading ? 'Generating…' : 'Export PDF'}
+                  </button>
+                  <button onClick={handleExportCSV} className="btn-secondary flex items-center gap-2 text-sm flex-1 justify-center">
+                    <Download className="w-4 h-4" /> Export CSV
+                  </button>
+                </div>
               </div>
             </>
-          ) : (
-            <EmptyState
-              title="No simulation results yet"
-              description="Add processes on the left and click 'Run Simulation' to see the Gantt chart and metrics."
-              icon={BarChart2}
-            />
           )}
+
         </div>
       </div>
 

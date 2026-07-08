@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import useAiAssistantStore from '../../store/useAiAssistantStore'
 import useAuthStore from '../../store/useAuthStore'
@@ -8,6 +9,7 @@ import ChatPanel from './ChatPanel'
 import FloatingChatWindow from './FloatingChatWindow'
 
 export default function AiAssistant() {
+  const location = useLocation()
   const { isOpen, showWelcome, openWithWelcome, setShowWelcome } = useAiAssistantStore()
   const isAuthenticated = useAuthStore(s => s.isAuthenticated)
   const showOllamaStatusToast = useSettingsStore(s => s.showOllamaStatusToast)
@@ -36,6 +38,8 @@ export default function AiAssistant() {
 
   if (!isAuthenticated) return null
 
+  const isAiAssistantPage = location.pathname === '/ai-assistant'
+
   return (
     <>
       <AnimatePresence>
@@ -54,30 +58,35 @@ export default function AiAssistant() {
           </motion.div>
         )}
       </AnimatePresence>
-      <ChatBubble />
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, x: '100%' }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: '100%' }}
-            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            style={{
-              position: 'fixed',
-              top: 0,
-              bottom: 0,
-              right: 0,
-              zIndex: 9999,
-              width: '380px',
-              height: '100vh',
-              boxShadow: '-10px 0 30px rgba(0,0,0,0.5)'
-            }}
-          >
-            <ChatPanel />
-          </motion.div>
-        )}
-      </AnimatePresence>
-      <FloatingChatWindow />
+
+      {!isAiAssistantPage && (
+        <>
+          <ChatBubble />
+          <AnimatePresence>
+            {isOpen && (
+              <motion.div
+                initial={{ opacity: 0, x: '100%' }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: '100%' }}
+                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                style={{
+                  position: 'fixed',
+                  top: 0,
+                  bottom: 0,
+                  right: 0,
+                  zIndex: 9999,
+                  width: '380px',
+                  height: '100vh',
+                  boxShadow: '-10px 0 30px rgba(0,0,0,0.5)'
+                }}
+              >
+                <ChatPanel />
+              </motion.div>
+            )}
+          </AnimatePresence>
+          <FloatingChatWindow />
+        </>
+      )}
     </>
   )
 }

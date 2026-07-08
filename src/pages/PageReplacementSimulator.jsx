@@ -99,53 +99,11 @@ export default function PageReplacementSimulator() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8 space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-extrabold text-text-primary tracking-tight flex items-center gap-3">
-            <RefreshCw className="w-8 h-8 text-accent" />
-            Page Replacement
-          </h1>
-          <p className="mt-2 text-text-muted text-sm">
-            Simulate and visualize memory paging algorithms step-by-step.
-          </p>
-        </div>
+    <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+      <div className="grid grid-cols-1 md:grid-cols-[1fr_300px] gap-[20px] items-start">
         
-        <div className="flex items-center gap-2 flex-wrap mt-4 md:mt-0">
-          {results && currentStepIndex === results.steps.length - 1 && (
-            <>
-              <button 
-                onClick={() => exportPageReplacementToCSV(results, algorithm, referenceString, frameCount)} 
-                className="btn-secondary px-4 py-2 flex items-center gap-2"
-              >
-                <FileText className="w-4 h-4" /> Export CSV
-              </button>
-              <button 
-                onClick={() => exportPageReplacementToPDF(results, algorithm, referenceString, frameCount)} 
-                className="btn-secondary px-4 py-2 flex items-center gap-2"
-              >
-                <Download className="w-4 h-4" /> Export PDF
-              </button>
-              <button onClick={handleSave} className="btn-secondary px-4 py-2 flex items-center gap-2">
-                <Save className="w-4 h-4" /> Save
-              </button>
-            </>
-          )}
-          <button
-            onClick={handleRun}
-            className="btn-primary px-6 py-2 flex items-center gap-2 shadow-glow"
-          >
-            <Play className="w-4 h-4" /> Run Simulation
-          </button>
-        </div>
-      </div>
-
-      <div className="grid lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-1">
-          <PageReplacementForm algorithm={algorithm} setAlgorithm={setAlgorithm} />
-        </div>
-        
-        <div className="lg:col-span-2 space-y-6">
+        {/* ── LEFT COLUMN (Primary Content) ── */}
+        <div className="flex flex-col gap-[20px] min-w-0 w-full">
           <PageFramesVisualization 
             frames={displayFrames}
             frameCount={frameCount}
@@ -154,8 +112,8 @@ export default function PageReplacementSimulator() {
             evictedPage={evictedPage}
           />
           
-          {results && (
-            <>
+          {results ? (
+            <div className="space-y-6">
               <PageReplacementStepControls 
                 currentStepIndex={currentStepIndex}
                 totalSteps={results.steps.length}
@@ -164,8 +122,52 @@ export default function PageReplacementSimulator() {
                 onTogglePlay={() => setIsPlaying(!isPlaying)}
               />
               <PageReplacementMetrics metrics={liveMetrics} />
-            </>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center p-12 card border-dashed border-border-muted mt-4">
+              <RefreshCw className="w-12 h-12 text-text-muted mb-4 opacity-50" />
+              <h3 className="text-lg font-medium text-text-secondary">No Simulation Results</h3>
+              <p className="text-sm text-text-muted mt-2 text-center max-w-sm">
+                Configure your reference string and frame count on the right, then run the simulation.
+              </p>
+            </div>
           )}
+        </div>
+
+        {/* ── RIGHT COLUMN (Secondary/Context) ── */}
+        <div className="flex flex-col gap-[20px] w-full">
+          
+          <PageReplacementForm algorithm={algorithm} setAlgorithm={setAlgorithm} />
+
+          <button
+            onClick={handleRun}
+            className="btn-primary w-full py-3.5 text-base flex items-center justify-center gap-2 shadow-glow"
+          >
+            <Play className="w-5 h-5" /> Run Simulation
+          </button>
+
+          {results && currentStepIndex === results.steps.length - 1 && (
+            <div className="flex flex-col gap-3 mt-2">
+              <button onClick={handleSave} className="btn-secondary w-full py-2 flex items-center justify-center gap-2">
+                <Save className="w-4 h-4" /> Save
+              </button>
+              <div className="flex gap-3">
+                <button 
+                  onClick={() => exportPageReplacementToPDF(results, algorithm, referenceString, frameCount)} 
+                  className="btn-secondary flex-1 py-2 flex items-center justify-center gap-2"
+                >
+                  <Download className="w-4 h-4" /> PDF
+                </button>
+                <button 
+                  onClick={() => exportPageReplacementToCSV(results, algorithm, referenceString, frameCount)} 
+                  className="btn-secondary flex-1 py-2 flex items-center justify-center gap-2"
+                >
+                  <FileText className="w-4 h-4" /> CSV
+                </button>
+              </div>
+            </div>
+          )}
+
         </div>
       </div>
     </div>

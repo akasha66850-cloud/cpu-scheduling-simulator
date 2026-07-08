@@ -32,7 +32,7 @@ export default function FormulaLegend() {
   const [open, setOpen] = useState(false)
 
   return (
-    <div className="rounded-[8px] border border-border bg-surface overflow-hidden">
+    <div className="rounded-[8px] border border-border bg-surface overflow-hidden w-[330px] -ml-[15px]">
       {/* Toggle header */}
       <button
         onClick={() => setOpen((v) => !v)}
@@ -52,22 +52,22 @@ export default function FormulaLegend() {
       {open && (
         <div className="border-t border-border divide-y divide-slate-800/60">
           {FORMULAS.map((f) => (
-            <div key={f.abbr} className="flex items-center gap-3 px-4 py-2.5">
+            <div key={f.abbr} className="flex items-center gap-3 px-3 py-2.5">
               {/* Abbreviation badge */}
-              <span className={`font-mono font-bold text-sm w-10 shrink-0 ${f.color}`}>
+              <span className={`font-mono font-bold text-sm w-9 shrink-0 ${f.color}`}>
                 {f.abbr}
               </span>
 
               {/* Name */}
-              <span className="text-text-secondary text-sm w-36 shrink-0">{f.name}</span>
+              <span className="text-text-secondary text-sm w-[115px] shrink-0">{f.name}</span>
 
               {/* Divider */}
-              <span className="text-slate-700 text-xs">=</span>
+              <span className="text-slate-700 text-xs shrink-0">=</span>
 
               {/* Formula */}
-              <span className="font-mono text-xs text-text-muted bg-elevated px-2.5 py-1 rounded-md">
+              <div className="font-mono text-[11px] text-text-muted bg-elevated px-2 py-1 rounded-md flex-1 break-words leading-snug">
                 {f.formula}
-              </span>
+              </div>
             </div>
           ))}
 
