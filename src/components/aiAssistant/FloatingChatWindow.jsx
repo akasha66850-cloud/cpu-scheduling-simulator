@@ -19,7 +19,7 @@ export default function FloatingChatWindow() {
 
   // Ensure window stays within bounds on resize
   const safePosition = isMaximized ? { x: 0, y: 0 } : floatingPosition
-  const safeSize = isMaximized ? { width: '100vw', height: '100vh' } : (isMinimized ? { width: 300, height: 48 } : { ...floatingSize, width: Math.min(floatingSize.width, window.innerWidth - 20) })
+  const safeSize = isMaximized ? { width: '100vw', height: '100vh' } : (isMinimized ? { width: 300, height: 48 } : floatingSize)
 
   const handleDragEnd = (e, info) => {
     if (isMaximized) return
