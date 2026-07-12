@@ -24,6 +24,14 @@ export default function DiskInput() {
   const isHeadValid = initialHead >= 0 && initialHead < diskSize
   const hasErrors = !isValidQueue || !isHeadValid
 
+  const handleQueueBlur = () => {
+    let arr = requestQueueInput.trim().split(/\s+/)
+    if (arr.length > 50) {
+      arr = arr.slice(0, 50)
+      setRequestQueueInput(arr.join(' '))
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -40,9 +48,9 @@ export default function DiskInput() {
               <input
                 type="number"
                 min="10"
-                max="10000"
+                max="500"
                 value={diskSize}
-                onChange={(e) => setDiskSize(parseInt(e.target.value) || 200)}
+                onChange={(e) => setDiskSize(Math.min(500, Math.max(10, parseInt(e.target.value) || 200)))}
                 className="w-full bg-surface border border-border-muted rounded px-3 py-2 text-sm focus:outline-none focus:border-accent transition-colors"
               />
             </div>
@@ -75,6 +83,7 @@ export default function DiskInput() {
           <textarea
             value={requestQueueInput}
             onChange={(e) => setRequestQueueInput(e.target.value)}
+            onBlur={handleQueueBlur}
             className={`w-full h-24 bg-surface border rounded-[5px] p-3 text-sm font-mono focus:outline-none transition-colors ${
               !isValidQueue ? 'border-rose-500 focus:border-rose-400 text-red' : 'border-border-muted focus:border-accent'
             }`}

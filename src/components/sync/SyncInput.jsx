@@ -44,21 +44,21 @@ export default function SyncInput() {
         {(activeProblem === 'mutex' || activeProblem === 'semaphore') && (
           <div className="space-y-2">
             <label className="text-xs font-semibold text-text-muted uppercase tracking-wider">Threads</label>
-            <input type="number" min="2" max="20" value={params.threads} onChange={e => setParam('threads', Number(e.target.value))} className="w-full bg-base border border-border rounded-[5px] px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent focus:ring-1 focus:ring-indigo-500 transition-colors" />
+            <input type="number" min="2" max="20" value={params.threads} onChange={e => setParam('threads', Math.min(20, Math.max(2, Number(e.target.value))))} className="w-full bg-base border border-border rounded-[5px] px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent focus:ring-1 focus:ring-indigo-500 transition-colors" />
           </div>
         )}
 
         {(activeProblem === 'mutex' || activeProblem === 'semaphore' || activeProblem === 'reader_writer') && (
           <div className="space-y-2">
             <label className="text-xs font-semibold text-text-muted uppercase tracking-wider">Operations / Thread</label>
-            <input type="number" min="1" max="100" value={params.ops} onChange={e => setParam('ops', Number(e.target.value))} className="w-full bg-base border border-border rounded-[5px] px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent focus:ring-1 focus:ring-indigo-500 transition-colors" />
+            <input type="number" min="1" max="100" value={params.ops} onChange={e => setParam('ops', Math.min(100, Math.max(1, Number(e.target.value))))} className="w-full bg-base border border-border rounded-[5px] px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent focus:ring-1 focus:ring-indigo-500 transition-colors" />
           </div>
         )}
 
         {activeProblem === 'semaphore' && (
           <div className="space-y-2">
             <label className="text-xs font-semibold text-text-muted uppercase tracking-wider">Pool Size</label>
-            <input type="number" min="1" max="10" value={params.pool_size} onChange={e => setParam('pool_size', Number(e.target.value))} className="w-full bg-base border border-border rounded-[5px] px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent focus:ring-1 focus:ring-indigo-500 transition-colors" />
+            <input type="number" min="1" max="10" value={params.pool_size} onChange={e => setParam('pool_size', Math.min(10, Math.max(1, Number(e.target.value))))} className="w-full bg-base border border-border rounded-[5px] px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent focus:ring-1 focus:ring-indigo-500 transition-colors" />
           </div>
         )}
 
@@ -66,19 +66,19 @@ export default function SyncInput() {
           <>
             <div className="space-y-2">
               <label className="text-xs font-semibold text-text-muted uppercase tracking-wider">Producers</label>
-              <input type="number" min="1" max="10" value={params.producers} onChange={e => setParam('producers', Number(e.target.value))} className="w-full bg-base border border-border rounded-[5px] px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent transition-colors" />
+              <input type="number" min="1" max="10" value={params.producers} onChange={e => setParam('producers', Math.min(10, Math.max(1, Number(e.target.value))))} className="w-full bg-base border border-border rounded-[5px] px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent transition-colors" />
             </div>
             <div className="space-y-2">
               <label className="text-xs font-semibold text-text-muted uppercase tracking-wider">Consumers</label>
-              <input type="number" min="1" max="10" value={params.consumers} onChange={e => setParam('consumers', Number(e.target.value))} className="w-full bg-base border border-border rounded-[5px] px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent transition-colors" />
+              <input type="number" min="1" max="10" value={params.consumers} onChange={e => setParam('consumers', Math.min(10, Math.max(1, Number(e.target.value))))} className="w-full bg-base border border-border rounded-[5px] px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent transition-colors" />
             </div>
             <div className="space-y-2">
               <label className="text-xs font-semibold text-text-muted uppercase tracking-wider">Buffer Size</label>
-              <input type="number" min="1" max="20" value={params.buffer_size} onChange={e => setParam('buffer_size', Number(e.target.value))} className="w-full bg-base border border-border rounded-[5px] px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent transition-colors" />
+              <input type="number" min="1" max="20" value={params.buffer_size} onChange={e => setParam('buffer_size', Math.min(20, Math.max(1, Number(e.target.value))))} className="w-full bg-base border border-border rounded-[5px] px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent transition-colors" />
             </div>
             <div className="space-y-2">
               <label className="text-xs font-semibold text-text-muted uppercase tracking-wider">Total Items</label>
-              <input type="number" min="1" max="100" value={params.items} onChange={e => setParam('items', Number(e.target.value))} className="w-full bg-base border border-border rounded-[5px] px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent transition-colors" />
+              <input type="number" min="1" max="100" value={params.items} onChange={e => setParam('items', Math.min(100, Math.max(1, Number(e.target.value))))} className="w-full bg-base border border-border rounded-[5px] px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent transition-colors" />
             </div>
           </>
         )}
@@ -87,11 +87,11 @@ export default function SyncInput() {
           <>
             <div className="space-y-2">
               <label className="text-xs font-semibold text-text-muted uppercase tracking-wider">Readers</label>
-              <input type="number" min="1" max="10" value={params.readers} onChange={e => setParam('readers', Number(e.target.value))} className="w-full bg-base border border-border rounded-[5px] px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent transition-colors" />
+              <input type="number" min="1" max="10" value={params.readers} onChange={e => setParam('readers', Math.min(10, Math.max(1, Number(e.target.value))))} className="w-full bg-base border border-border rounded-[5px] px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent transition-colors" />
             </div>
             <div className="space-y-2">
               <label className="text-xs font-semibold text-text-muted uppercase tracking-wider">Writers</label>
-              <input type="number" min="1" max="10" value={params.writers} onChange={e => setParam('writers', Number(e.target.value))} className="w-full bg-base border border-border rounded-[5px] px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent transition-colors" />
+              <input type="number" min="1" max="10" value={params.writers} onChange={e => setParam('writers', Math.min(10, Math.max(1, Number(e.target.value))))} className="w-full bg-base border border-border rounded-[5px] px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent transition-colors" />
             </div>
             <div className="space-y-2 flex flex-col justify-end">
               <button
@@ -111,11 +111,11 @@ export default function SyncInput() {
           <>
             <div className="space-y-2">
               <label className="text-xs font-semibold text-text-muted uppercase tracking-wider">Philosophers</label>
-              <input type="number" min="2" max="10" value={params.philosophers} onChange={e => setParam('philosophers', Number(e.target.value))} className="w-full bg-base border border-border rounded-[5px] px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent transition-colors" />
+              <input type="number" min="2" max="10" value={params.philosophers} onChange={e => setParam('philosophers', Math.min(10, Math.max(2, Number(e.target.value))))} className="w-full bg-base border border-border rounded-[5px] px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent transition-colors" />
             </div>
             <div className="space-y-2">
               <label className="text-xs font-semibold text-text-muted uppercase tracking-wider">Meals / Philosopher</label>
-              <input type="number" min="1" max="20" value={params.meals} onChange={e => setParam('meals', Number(e.target.value))} className="w-full bg-base border border-border rounded-[5px] px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent transition-colors" />
+              <input type="number" min="1" max="20" value={params.meals} onChange={e => setParam('meals', Math.min(20, Math.max(1, Number(e.target.value))))} className="w-full bg-base border border-border rounded-[5px] px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent transition-colors" />
             </div>
           </>
         )}

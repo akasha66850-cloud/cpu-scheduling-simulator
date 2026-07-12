@@ -36,6 +36,10 @@ export default function MemoryForm() {
       setErrors({ ...errors, block: 'Must be > 0' })
       return
     }
+    if (blocks.length >= 20) {
+      setErrors({ ...errors, block: 'Max 20 blocks reached' })
+      return
+    }
     const num = blocks.map(b => parseInt(b.id.replace(/\D/g, ''), 10) || 0)
     const id = `B${blocks.length === 0 ? 1 : Math.max(...num) + 1}`
     addBlock({ id, size })
@@ -48,6 +52,10 @@ export default function MemoryForm() {
     const size = parseInt(processSize, 10)
     if (isNaN(size) || size <= 0) {
       setErrors({ ...errors, process: 'Must be > 0' })
+      return
+    }
+    if (processes.length >= 20) {
+      setErrors({ ...errors, process: 'Max 20 processes reached' })
       return
     }
     const num = processes.map(p => parseInt(p.id.replace(/\D/g, ''), 10) || 0)

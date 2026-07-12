@@ -118,11 +118,11 @@ export default function FileComparison() {
       <div className="bg-surface border border-border rounded-[8px] p-4 flex gap-6 shadow-md">
          <div className="flex flex-col">
             <label className="text-xs text-text-muted mb-1">Disk Size (Blocks)</label>
-            <input type="number" value={diskSize} onChange={e=>setDiskSize(parseInt(e.target.value))} className="bg-base border border-border-muted rounded px-3 py-1 text-text-primary text-sm" />
+            <input type="number" value={diskSize} onChange={e=>setDiskSize(Math.min(200, Math.max(16, parseInt(e.target.value) || 64)))} className="bg-base border border-border-muted rounded px-3 py-1 text-text-primary text-sm" />
          </div>
          <div className="flex flex-col">
             <label className="text-xs text-text-muted mb-1">Random Workload (Files)</label>
-            <input type="number" value={numFiles} onChange={e=>setNumFiles(parseInt(e.target.value))} className="bg-base border border-border-muted rounded px-3 py-1 text-text-primary text-sm" />
+            <input type="number" value={numFiles} onChange={e=>setNumFiles(Math.min(20, Math.max(1, parseInt(e.target.value) || 10)))} className="bg-base border border-border-muted rounded px-3 py-1 text-text-primary text-sm" />
          </div>
       </div>
 
