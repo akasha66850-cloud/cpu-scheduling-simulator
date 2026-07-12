@@ -29,7 +29,7 @@ const usePageReplacementStore = create(
       clearHistory: () => set({ history: [] }),
     }),
     {
-      name: 'page-replacement-storage',
+      name: 'page-replacement-storage-v2',
     }
   )
 )

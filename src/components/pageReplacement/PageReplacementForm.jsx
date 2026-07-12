@@ -18,18 +18,12 @@ export default function PageReplacementForm({ algorithm, setAlgorithm }) {
   const [inputStr, setInputStr] = useState(referenceString)
 
   const handleBlur = () => {
-    // Clean up input and limit to 50 pages
-    let cleanedArr = inputStr
+    // Clean up input
+    const cleaned = inputStr
       .replace(/[^0-9,\s]/g, '')
       .split(/[,\s]+/)
       .filter((s) => s !== '')
-      
-    if (cleanedArr.length > 50) {
-      cleanedArr = cleanedArr.slice(0, 50)
-      // Optional: you could add a toast here if you have a toast system
-    }
-    
-    const cleaned = cleanedArr.join(', ')
+      .join(', ')
     setInputStr(cleaned)
     setReferenceString(cleaned)
   }
@@ -89,9 +83,9 @@ export default function PageReplacementForm({ algorithm, setAlgorithm }) {
             <input
               type="number"
               min="1"
-              max="15"
+              max="20"
               value={frameCount}
-              onChange={(e) => setFrameCount(Math.min(15, Math.max(1, parseInt(e.target.value) || 1)))}
+              onChange={(e) => setFrameCount(Math.max(1, parseInt(e.target.value) || 1))}
               className="input-field w-full"
             />
           </div>
